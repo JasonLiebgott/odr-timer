@@ -1,12 +1,12 @@
-const CACHE_NAME = 'odr-timer-v2';
+const CACHE_NAME = 'odr-timer-v3';
 const urlsToCache = [
-    './',
-    './index.html',
-    './styles.css',
-    './app.js',
-    './manifest.json',
-    './icons/icon-192.svg',
-    './icons/icon-512.svg'
+    '/odr-timer/',
+    '/odr-timer/index.html',
+    '/odr-timer/styles.css',
+    '/odr-timer/app.js',
+    '/odr-timer/manifest.json',
+    '/odr-timer/icons/icon-192.svg',
+    '/odr-timer/icons/icon-512.svg'
 ];
 
 self.addEventListener('install', event => {
