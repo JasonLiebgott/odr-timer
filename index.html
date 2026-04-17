@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ODR Timer</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
@@ -10,6 +10,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ODR Timer">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://unpkg.com/material-components-web@14.0.0/dist/material-components-web.min.css">
@@ -30,6 +32,11 @@
                 <button id="timers-btn" class="mdc-tab mdc-tab--active" role="tab">
                     <span class="mdc-tab__content">
                         <span class="mdc-tab__text-label">Timers</span>
+                    </span>
+                </button>
+                <button id="available-btn" class="mdc-tab" role="tab">
+                    <span class="mdc-tab__content">
+                        <span class="mdc-tab__text-label">Available</span>
                     </span>
                 </button>
                 <button id="setup-btn" class="mdc-tab" role="tab">
@@ -53,6 +60,16 @@
                 <span class="mdc-fab__icon material-icons">add</span>
                 <span class="mdc-fab__label">Add Timer</span>
             </button>
+        </section>
+        <section id="available-section" class="section">
+            <div class="available-header">
+                <div>
+                    <h2 class="mdc-typography mdc-typography--headline5">Available Inventory</h2>
+                    <p class="setup-help">Items shown here do not currently have an active timer running.</p>
+                </div>
+            </div>
+            <div id="available-summary" class="available-summary"></div>
+            <div id="available-grid" class="available-grid"></div>
         </section>
         <section id="setup-section" class="section">
             <div class="setup-section-grid">

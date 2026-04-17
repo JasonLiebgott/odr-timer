@@ -47,12 +47,16 @@ let timers = JSON.parse(localStorage.getItem(TIMERS_KEY)) || [];
 
 // DOM elements
 const timersSection = document.getElementById('timers-section');
+const availableSection = document.getElementById('available-section');
 const setupSection = document.getElementById('setup-section');
 const timersBtn = document.getElementById('timers-btn');
+const availableBtn = document.getElementById('available-btn');
 const setupBtn = document.getElementById('setup-btn');
 const refreshBtn = document.getElementById('refresh-btn');
 const timersList = document.getElementById('timers-list');
 const filterButtons = document.getElementById('filter-buttons');
+const availableSummary = document.getElementById('available-summary');
+const availableGrid = document.getElementById('available-grid');
 const addTimerBtn = document.getElementById('add-timer-btn');
 const addTimerTopBtn = document.getElementById('add-timer-top-btn');
 const addObjectTypeBtn = document.getElementById('add-object-type-btn');
@@ -65,18 +69,26 @@ let currentFilter = null;
 
 // Navigation
 timersBtn?.addEventListener('click', () => switchSection('timers'));
+availableBtn?.addEventListener('click', () => switchSection('available'));
 setupBtn?.addEventListener('click', () => switchSection('setup'));
 refreshBtn?.addEventListener('click', () => refreshFromStorage());
 
 function switchSection(section) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.mdc-tab').forEach(b => b.classList.remove('mdc-tab--active'));
-    
+    if (addTimerBtn) {
+        addTimerBtn.style.display = section === 'timers' ? 'inline-flex' : 'none';
+    }
+
     if (section === 'timers') {
         timersSection.classList.add('active');
         timersBtn.classList.add('mdc-tab--active');
         renderTimers();
         renderFilters();
+    } else if (section === 'available') {
+        availableSection.classList.add('active');
+        availableBtn.classList.add('mdc-tab--active');
+        renderAvailableInventory();
     } else {
         setupSection.classList.add('active');
         setupBtn.classList.add('mdc-tab--active');
@@ -94,6 +106,8 @@ function refreshFromStorage() {
     if (activeSection.id === 'timers-section') {
         renderTimers();
         renderFilters();
+    } else if (activeSection.id === 'available-section') {
+        renderAvailableInventory();
     } else {
         renderObjectTypes();
         renderInventoryItems();
@@ -162,6 +176,50 @@ function renderTimers() {
                 timersList.insertBefore(timerEl, timersList.children[index]);
             }
         }
+    });
+}
+
+function getActiveInventoryIds() {
+    const now = Date.now();
+    return new Set(
+        timers
+            .filter(timer => timer.inventoryId && timer.startTime + timer.duration > now)
+            .map(timer => timer.inventoryId)
+    );
+}
+
+function renderAvailableInventory() {
+    const activeInventoryIds = getActiveInventoryIds();
+    const availableItems = inventoryItems
+        .filter(item => !activeInventoryIds.has(item.id))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    availableSummary.textContent = availableItems.length === 0
+        ? 'No inventory is currently available.'
+        : `${availableItems.length} item${availableItems.length === 1 ? '' : 's'} available`;
+
+    availableGrid.innerHTML = '';
+
+    if (availableItems.length === 0) {
+        availableGrid.innerHTML = `
+            <div class="available-empty">
+                Everything is currently on an active timer.
+            </div>
+        `;
+        return;
+    }
+
+    availableItems.forEach(item => {
+        const typeData = objectTypes.find(type => type.id === item.typeId) || { icon: '?', name: 'Unknown' };
+        const card = document.createElement('div');
+        card.className = 'mdc-card available-card';
+        card.innerHTML = `
+            <div class="available-card-icon">${typeData.icon}</div>
+            <div class="available-card-name">${item.name}</div>
+            <div class="available-card-type">${typeData.name}</div>
+        `;
+        card.addEventListener('click', () => addTimerForItem(item.id));
+        availableGrid.appendChild(card);
     });
 }
 
@@ -277,7 +335,12 @@ function addTimer() {
     document.body.appendChild(modal);
 }
 
-function createTimerModal() {
+function addTimerForItem(itemId) {
+    const modal = createTimerModal(itemId);
+    document.body.appendChild(modal);
+}
+
+function createTimerModal(preselectedItemId = null) {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.innerHTML = `
@@ -289,7 +352,8 @@ function createTimerModal() {
                     <select id="timer-inventory" required>
                         ${inventoryItems.length > 0 ? inventoryItems.map(item => {
                             const type = objectTypes.find(type => type.id === item.typeId) || { icon: '❓', name: 'Unknown' };
-                            return '<option value="' + item.id + '">' + type.icon + ' ' + item.name + ' (' + type.name + ')</option>';
+                            const selected = preselectedItemId === item.id ? ' selected' : '';
+                            return '<option value="' + item.id + '"' + selected + '>' + type.icon + ' ' + item.name + ' (' + type.name + ')</option>';
                         }).join('') : '<option value="" disabled selected>No inventory items available</option>'}
                     </select>
                 </div>
@@ -394,6 +458,7 @@ function createTimerModal() {
         timers.push(timer);
         saveTimers();
         renderTimers();
+        renderAvailableInventory();
         modal.remove();
     });
     
@@ -460,6 +525,7 @@ function adjustStartTime(id) {
         timer.startTime = newStartTime;
         saveTimers();
         renderTimers();
+        renderAvailableInventory();
         modal.remove();
     });
     
@@ -475,12 +541,14 @@ function stopTimer(id) {
     timers = timers.filter(t => t.id !== id);
     saveTimers();
     renderTimers();
+    renderAvailableInventory();
 }
 
 function deleteTimer(id) {
     timers = timers.filter(t => t.id !== id);
     saveTimers();
     renderTimers();
+    renderAvailableInventory();
 }
 
 // Inventory and object type management
@@ -532,6 +600,7 @@ function renderObjectTypes() {
             renderInventoryItems();
             renderFilters();
             renderTimers();
+            renderAvailableInventory();
         });
     });
 }
@@ -579,6 +648,7 @@ function renderInventoryItems() {
             saveTimers();
             renderInventoryItems();
             renderTimers();
+            renderAvailableInventory();
         });
     });
 }
@@ -635,6 +705,7 @@ function editObjectType(id) {
         saveObjectTypes();
         renderObjectTypes();
         renderFilters();
+        renderAvailableInventory();
         modal.remove();
     });
 
@@ -696,6 +767,7 @@ function addObjectType() {
         saveObjectTypes();
         renderObjectTypes();
         renderFilters();
+        renderAvailableInventory();
         modal.remove();
     });
 
@@ -747,6 +819,7 @@ function editInventoryItem(id) {
         item.typeId = modal.querySelector('#inventory-item-type').value;
         saveInventoryItems();
         renderInventoryItems();
+        renderAvailableInventory();
         modal.remove();
     });
 
@@ -797,6 +870,7 @@ function addInventoryItem() {
         inventoryItems.push({ id, typeId, name });
         saveInventoryItems();
         renderInventoryItems();
+        renderAvailableInventory();
         modal.remove();
     });
 
@@ -826,10 +900,20 @@ addTimerTopBtn?.addEventListener('click', addTimer);
 addObjectTypeBtn?.addEventListener('click', addObjectType);
 addInventoryItemBtn?.addEventListener('click', addInventoryItem);
 
-// Update timers every second
-setInterval(renderTimers, 1000);
+// Update the active live view every second so timers and availability stay current.
+setInterval(() => {
+    const activeSection = document.querySelector('.section.active');
+    if (!activeSection) return;
+
+    if (activeSection.id === 'timers-section') {
+        renderTimers();
+    } else if (activeSection.id === 'available-section') {
+        renderAvailableInventory();
+    }
+}, 1000);
 
 // Initial render
 renderObjectTypes();
 renderInventoryItems();
+renderAvailableInventory();
 switchSection('timers');

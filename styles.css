@@ -4,6 +4,11 @@ body {
     padding: 0;
     background-color: #f5f5f5;
     color: #333;
+    /* iPad safe area support */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
 }
 
 .header-icon {
@@ -61,6 +66,110 @@ body {
     display: flex;
     flex-direction: column;
     gap: 16px;
+}
+
+.available-header {
+    margin-bottom: 12px;
+}
+
+.available-summary {
+    margin-bottom: 16px;
+    font-weight: 600;
+    color: #4a4458;
+}
+
+.available-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+/* iPad and larger screens */
+@media (min-width: 768px) {
+    .modal-content {
+        max-width: 500px;
+        padding: 32px;
+    }
+
+    .available-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .available-card {
+        min-height: 150px;
+        padding: 20px 18px;
+    }
+
+    .section {
+        padding: 20px;
+    }
+}
+
+/* iPad Pro and larger */
+@media (min-width: 1024px) {
+    .modal-content {
+        max-width: 600px;
+    }
+
+    .available-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
+
+.available-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f6f1ff 100%);
+    border-radius: 16px;
+    box-shadow: 0 8px 18px rgba(65, 37, 115, 0.08);
+    padding: 18px 16px;
+    min-height: 136px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid rgba(98, 0, 238, 0.08);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.available-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(65, 37, 115, 0.15);
+    border-color: rgba(98, 0, 238, 0.2);
+}
+
+/* iPad and touch devices - disable hover effects */
+@media (hover: none) and (pointer: coarse) {
+    .available-card:hover {
+        transform: none;
+        box-shadow: 0 8px 18px rgba(65, 37, 115, 0.08);
+        border-color: rgba(98, 0, 238, 0.08);
+    }
+}
+
+.available-card-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.available-card-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1f1a2c;
+}
+
+.available-card-type {
+    color: #665d78;
+    font-weight: 500;
+}
+
+.available-empty {
+    grid-column: 1 / -1;
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    color: #665d78;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
 
 .timer-item {
@@ -308,6 +417,8 @@ body {
     width: 90%;
     max-width: 400px;
     box-shadow: 0 11px 15px -7px rgba(0,0,0,0.2), 0 24px 38px 3px rgba(0,0,0,0.14), 0 9px 46px 8px rgba(0,0,0,0.12);
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .form-group {
@@ -328,6 +439,8 @@ input, select {
     border-radius: 4px;
     font-family: 'Roboto', sans-serif;
     font-size: 16px;
+    min-height: 44px; /* iPad touch target minimum */
+    box-sizing: border-box;
 }
 
 input:focus, select:focus {
@@ -343,9 +456,46 @@ input:focus, select:focus {
     margin-top: 24px;
 }
 
+.modal-buttons .mdc-button {
+    min-height: 44px; /* iPad touch target */
+    padding: 0 16px;
+}
+
+/* iPad and larger screens */
+@media (min-width: 768px) {
+    .modal-content {
+        max-width: 500px;
+        padding: 32px;
+    }
+
+    .available-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .available-card {
+        min-height: 150px;
+        padding: 20px 18px;
+    }
+
+    .section {
+        padding: 20px;
+    }
+
+    .modal-buttons {
+        gap: 12px;
+    }
+}
+
 /* Material Design overrides */
 .mdc-top-app-bar {
     background-color: #6200ee;
+    /* iPad safe area support */
+    padding-top: env(safe-area-inset-top);
+}
+
+.mdc-top-app-bar.mdc-top-app-bar--fixed {
+    top: env(safe-area-inset-top);
 }
 
 .mdc-tab__text-label {
@@ -368,8 +518,8 @@ input:focus, select:focus {
 
 .mdc-fab {
     position: fixed;
-    bottom: 16px;
-    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    right: calc(16px + env(safe-area-inset-right));
     background-color: #6200ee;
     z-index: 10;
 }
@@ -398,4 +548,14 @@ input:focus, select:focus {
     background-color: #6200ee;
     color: white;
     border: 1px solid rgba(255,255,255,0.18);
+}
+
+@media (max-width: 768px) {
+    .setup-section-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .available-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
 }
