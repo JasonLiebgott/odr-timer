@@ -21,6 +21,9 @@
                 <span class="mdc-top-app-bar__title">ODR Timer</span>
             </section>
             <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end">
+                <button id="refresh-btn" class="mdc-icon-button" aria-label="Refresh" title="Refresh from saved data">
+                    <span class="material-icons">refresh</span>
+                </button>
                 <button id="timers-btn" class="mdc-tab mdc-tab--active" role="tab">
                     <span class="mdc-tab__content">
                         <span class="mdc-tab__text-label">Timers</span>
@@ -36,12 +39,6 @@
     </header>
     <main class="mdc-top-app-bar--fixed-adjust">
         <section id="timers-section" class="section active">
-            <div class="add-action-row">
-                <button id="add-timer-top-btn" class="mdc-button mdc-button--raised add-top-btn">
-                    <span class="mdc-button__ripple"></span>
-                    <span class="mdc-button__label">Add Timer</span>
-                </button>
-            </div>
             <div id="filter-buttons" class="mdc-chip-set mdc-chip-set--choice">
                 <!-- Filter buttons will be added here -->
             </div>

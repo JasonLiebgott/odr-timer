@@ -50,6 +50,7 @@ const timersSection = document.getElementById('timers-section');
 const setupSection = document.getElementById('setup-section');
 const timersBtn = document.getElementById('timers-btn');
 const setupBtn = document.getElementById('setup-btn');
+const refreshBtn = document.getElementById('refresh-btn');
 const timersList = document.getElementById('timers-list');
 const filterButtons = document.getElementById('filter-buttons');
 const addTimerBtn = document.getElementById('add-timer-btn');
@@ -65,6 +66,7 @@ let currentFilter = null;
 // Navigation
 timersBtn.addEventListener('click', () => switchSection('timers'));
 setupBtn.addEventListener('click', () => switchSection('setup'));
+refreshBtn.addEventListener('click', () => refreshFromStorage());
 
 function switchSection(section) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -78,6 +80,21 @@ function switchSection(section) {
     } else {
         setupSection.classList.add('active');
         setupBtn.classList.add('mdc-tab--active');
+        renderObjectTypes();
+        renderInventoryItems();
+    }
+}
+
+function refreshFromStorage() {
+    objectTypes = JSON.parse(localStorage.getItem('odr_object_types')) || Object.values(DEFAULT_TYPES).map(type => ({ ...type, id: type.name.toLowerCase().replace(/\s+/g, '') }));
+    inventoryItems = JSON.parse(localStorage.getItem('odr_inventory_items')) || [];
+    timers = JSON.parse(localStorage.getItem(TIMERS_KEY)) || [];
+    
+    const activeSection = document.querySelector('.section.active');
+    if (activeSection.id === 'timers-section') {
+        renderTimers();
+        renderFilters();
+    } else {
         renderObjectTypes();
         renderInventoryItems();
     }
@@ -108,7 +125,6 @@ function renderFilters() {
 
 // Render timers
 function renderTimers() {
-    timersList.innerHTML = '';
     const filteredTimers = currentFilter ? timers.filter(t => t.type === currentFilter) : timers;
     
     filteredTimers.sort((a, b) => {
@@ -116,11 +132,57 @@ function renderTimers() {
         const bTimeLeft = getTimeLeft(b);
         return aTimeLeft - bTimeLeft;
     });
-    
-    filteredTimers.forEach(timer => {
-        const timerEl = createTimerElement(timer);
-        timersList.appendChild(timerEl);
+
+    // Filter out timers with invalid inventory references
+    const validTimers = filteredTimers.filter(t => {
+        const itemData = inventoryItems.find(item => item.id === t.inventoryId);
+        return itemData !== undefined;
     });
+
+    // Get current timer IDs in filtered list
+    const filteredIds = new Set(validTimers.map(t => t.id));
+
+    // Remove timers no longer in filtered list
+    Array.from(timersList.querySelectorAll('[data-id]')).forEach(el => {
+        if (!filteredIds.has(el.dataset.id)) {
+            el.remove();
+        }
+    });
+
+    // Update or create timer elements
+    validTimers.forEach((timer, index) => {
+        let timerEl = timersList.querySelector(`[data-id="${timer.id}"]`);
+        if (!timerEl) {
+            timerEl = createTimerElement(timer);
+            timersList.appendChild(timerEl);
+        } else {
+            updateTimerDisplay(timerEl, timer);
+            // Move to correct position if order changed
+            if (timersList.children[index] !== timerEl) {
+                timersList.insertBefore(timerEl, timersList.children[index]);
+            }
+        }
+    });
+}
+
+function updateTimerDisplay(timerEl, timer) {
+    const timeLeft = getTimeLeft(timer);
+    const progress = Math.max(0, Math.min(100, (timer.duration - timeLeft) / timer.duration * 100));
+    const isOvertime = timeLeft < 0;
+    const isWarning = timeLeft <= 15 * 60 * 1000 && timeLeft > 0;
+
+    let progressClass = 'green';
+    if (isOvertime) progressClass = 'red';
+    else if (isWarning) progressClass = 'yellow';
+
+    const progressFill = timerEl.querySelector('.progress-fill');
+    progressFill.style.width = progress + '%';
+    progressFill.className = 'progress-fill ' + progressClass;
+
+    const dueLabel = isOvertime ? `PAST DUE: ${formatTime(Math.abs(timeLeft))}` : formatTime(timeLeft);
+    const timerTimeEl = timerEl.querySelector('.timer-time');
+    timerTimeEl.textContent = dueLabel;
+    timerTimeEl.className = 'timer-time' + (isOvertime ? ' overtime' : '');
 }
 
 function createTimerElement(timer) {
@@ -167,53 +229,13 @@ function createTimerElement(timer) {
     `;
     
     // Pointer events for swipe to delete and mouse drag support
-    let startX = 0;
-    let currentX = 0;
-    let isDragging = false;
     let justSwiped = false;
-    let pointerId = null;
     
     div.addEventListener('pointerdown', e => {
         if (e.pointerType === 'mouse' || e.pointerType === 'touch' || e.pointerType === 'pen') {
-            startX = e.clientX;
-            currentX = startX;
-            isDragging = true;
-            pointerId = e.pointerId;
-            div.setPointerCapture(pointerId);
             e.preventDefault();
         }
     });
-    
-    div.addEventListener('pointermove', e => {
-        if (!isDragging || e.pointerId !== pointerId) return;
-        currentX = e.clientX;
-        const diff = startX - currentX;
-        if (diff > 50) {
-            div.classList.add('swiping');
-        } else {
-            div.classList.remove('swiping');
-        }
-        e.preventDefault();
-    });
-    
-    const finishDrag = () => {
-        if (!isDragging) return;
-        const diff = startX - currentX;
-        if (diff > 50) {
-            div.classList.add('swiping');
-            justSwiped = true;
-        } else {
-            div.classList.remove('swiping');
-        }
-        isDragging = false;
-        if (pointerId !== null) {
-            try { div.releasePointerCapture(pointerId); } catch (err) {}
-            pointerId = null;
-        }
-    };
-    
-    div.addEventListener('pointerup', () => finishDrag());
-    div.addEventListener('pointercancel', () => finishDrag());
     
     // Button events
     div.querySelector('.adjust-start').addEventListener('click', e => {
@@ -225,15 +247,12 @@ function createTimerElement(timer) {
         deleteTimer(timer.id);
     });
     
-    // Close delete on click elsewhere
+    // Toggle action buttons on div click
     div.addEventListener('click', e => {
-        if (justSwiped) {
-            justSwiped = false;
+        if (e.target.closest('.slide-action')) {
             return;
         }
-        if (div.classList.contains('swiping') && !e.target.closest('.delete-overlay')) {
-            div.classList.remove('swiping');
-        }
+        div.classList.toggle('expanded');
     });
     
     return div;

@@ -12,6 +12,32 @@ body {
     font-size: 28px;
 }
 
+#refresh-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+#refresh-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#refresh-btn:active {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+#refresh-btn .material-icons {
+    font-size: 24px;
+}
+
 .setup-help {
     color: #555;
     margin: 8px 0 16px;
@@ -43,9 +69,8 @@ body {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     padding: 16px;
-    touch-action: pan-y;
 }
 
 .timer-header {
@@ -209,33 +234,26 @@ body {
 }
 
 .delete-overlay {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 140px;
-    background: #f44336;
-    color: white;
-    display: flex;
+    position: static;
+    display: none;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-around;
     gap: 8px;
     padding: 12px 12px;
-    transform: translateX(100%);
-    transition: transform 0.3s;
-    font-weight: 500;
+    background: none;
+    margin-top: 12px;
 }
 
-.timer-item.swiping .delete-overlay {
-    transform: translateX(0);
+.timer-item.expanded .delete-overlay {
+    display: flex;
 }
 
 .slide-action {
     flex: 1;
     min-width: 0;
     border: none;
-    background: rgba(255,255,255,0.14);
+    background: #b8a4d4;
     color: white;
     padding: 10px 12px;
     border-radius: 8px;
@@ -244,11 +262,15 @@ body {
 }
 
 .slide-action:hover {
-    background: rgba(255,255,255,0.24);
+    background: #a89cc8;
 }
 
 .delete-btn {
-    background: rgba(255,255,255,0.18);
+    background: #e6a8a8;
+}
+
+.delete-btn:hover {
+    background: #d99898;
 }
 
 .timer-header {
