@@ -64,9 +64,9 @@ const inventoryItemsList = document.getElementById('inventory-items-list');
 let currentFilter = null;
 
 // Navigation
-timersBtn.addEventListener('click', () => switchSection('timers'));
-setupBtn.addEventListener('click', () => switchSection('setup'));
-refreshBtn.addEventListener('click', () => refreshFromStorage());
+timersBtn?.addEventListener('click', () => switchSection('timers'));
+setupBtn?.addEventListener('click', () => switchSection('setup'));
+refreshBtn?.addEventListener('click', () => refreshFromStorage());
 
 function switchSection(section) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -821,10 +821,10 @@ function saveTimers() {
 }
 
 // Event listeners
-addTimerBtn.addEventListener('click', addTimer);
-addTimerTopBtn.addEventListener('click', addTimer);
-addObjectTypeBtn.addEventListener('click', addObjectType);
-addInventoryItemBtn.addEventListener('click', addInventoryItem);
+addTimerBtn?.addEventListener('click', addTimer);
+addTimerTopBtn?.addEventListener('click', addTimer);
+addObjectTypeBtn?.addEventListener('click', addObjectType);
+addInventoryItemBtn?.addEventListener('click', addInventoryItem);
 
 // Update timers every second
 setInterval(renderTimers, 1000);
