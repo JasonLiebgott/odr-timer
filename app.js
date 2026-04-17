@@ -269,7 +269,7 @@ function createTimerElement(timer) {
     div.innerHTML = `
         <div class="mdc-card__content">
             <div class="timer-header">
-                <span class="timer-name">${icon} ${displayName}</span>
+                <span class="timer-name"><span class="timer-icon">${icon}</span> ${displayName}</span>
                 <span class="timer-time ${isOvertime ? 'overtime' : ''}">${dueLabel}</span>
             </div>
             <div class="progress-bar">
